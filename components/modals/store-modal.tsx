@@ -8,6 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Button } from "../ui/button";
 import { adminFormSchema } from "@/schemas/formSchema";
 import { toast } from "sonner"
+import { LoaderIcon } from "lucide-react";
+import axios from "axios"
+import { redirect } from "next/navigation";
+import { Store } from "@prisma/client";
 
 
 
@@ -30,20 +34,18 @@ export const StoreModal = () => {
               }
             }
             onSubmit={async (values) => {
-              const response = await fetch(`/api/stores`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json"
-                },
-                body: JSON.stringify({name : values.name })
+              const response = await axios.post("/api/stores", {
+                name: values.name
               })
-
+            
               if(response.status === 200) {
                 toast("successfully created the store!")
-                return
-              } 
-
-              toast("something went wrong")
+                window.location.assign(`/${response.data.id}`)
+            
+              } else {
+                toast("something went wrong")
+              }
+              modalStore.onClose()
 
             }}
             validationSchema={adminFormSchema}
@@ -59,16 +61,18 @@ export const StoreModal = () => {
                     value={values.name}
                     placeholder="E-commerce"
                   />
-                  {errors.name && <p className="text-red-500">{errors.name}</p>}
+                  {errors.name && !touched.name && <p className="text-red-500">{errors.name}</p>}
                 </div>
 
                 <div className="pt-6 space-x-2 flex justify-end">
-                  <Button variant="outline" onClick={modalStore.onClose}> cancel </Button>
-                  <Button type="submit"> create store </Button>
+                  <Button variant="outline" onClick={modalStore.onClose} disabled={isSubmitting}> cancel </Button>
+                  <Button type="submit" disabled={isSubmitting}>
+                     create store 
+                     {isSubmitting && <LoaderIcon className="animate-spin" />} 
+                  </Button>
                 </div>
               </Form>
             )}
-
           </Formik>
         </div>
     </CustomModal>

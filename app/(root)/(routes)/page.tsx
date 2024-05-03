@@ -23,11 +23,7 @@ const Root = (props: Props) => {
   }, [isOpen, onOpen])
 
 
-  return (
-    <div className="p-4 pt-2 placeholder-slate-200">
-      ANANI
-    </div>
-  );
+  return null 
 };
 
 export default Root;
