@@ -32,7 +32,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({ initialData, params 
     setLoading(true);
     const response = axios.delete(`/api/stores/${params.storeId}`)
     .then(() => {
-      router.push("/")
+      router.push("/admin")
       router.refresh()
     })
     .catch((error) => {

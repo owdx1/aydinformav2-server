@@ -11,7 +11,7 @@ const RootLayout = async ({children} : {children: React.ReactNode}) => {
   const { userId } = auth();
 
   if(!userId) {
-    redirect("/sign-in")
+    redirect("/admin/sign-in")
   }
   const store = await prismadb.store.findFirst({
     where: {
@@ -20,7 +20,7 @@ const RootLayout = async ({children} : {children: React.ReactNode}) => {
   })
 
   if(store) {
-    redirect(`/${store.id}`)
+    redirect(`/admin/${store.id}`)
   }
 
   return (

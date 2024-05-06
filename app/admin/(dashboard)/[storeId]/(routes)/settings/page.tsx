@@ -15,7 +15,7 @@ const SettingsPage: React.FC<SettingsPageProps> = async ({ params }) => {
   const { userId } = auth();
 
   if(!userId) {
-    redirect("/sign-in")
+    redirect("/admin/sign-in")
   }
 
   const store = await prismadb.store.findUnique({
@@ -26,7 +26,7 @@ const SettingsPage: React.FC<SettingsPageProps> = async ({ params }) => {
   })
 
   if(!store) {
-    redirect("/")
+    redirect("/admin")
   }
 
   return (

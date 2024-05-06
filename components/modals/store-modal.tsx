@@ -40,7 +40,7 @@ export const StoreModal = () => {
             
               if(response.status === 200) {
                 toast("successfully created the store!")
-                window.location.assign(`/${response.data.id}`)
+                window.location.assign(`/admin/${response.data.id}`)
             
               } else {
                 toast("something went wrong")

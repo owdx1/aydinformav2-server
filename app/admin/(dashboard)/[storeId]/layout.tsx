@@ -13,7 +13,7 @@ const DashboardLayout = async  ({ children, params} : {children: React.ReactNode
   const { userId } = auth()
 
   if(!userId) {
-    redirect("/sign-in")
+    redirect("/admin/sign-in")
   }
 
   const stores: Store[] = await prismadb.store.findMany({
@@ -26,7 +26,7 @@ const DashboardLayout = async  ({ children, params} : {children: React.ReactNode
   })
 
   if(stores.length === 0) {
-    redirect("/")
+    redirect("/admin")
   } 
 
   return (
