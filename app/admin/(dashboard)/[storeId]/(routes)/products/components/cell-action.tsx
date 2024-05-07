@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from 'react'
-import { BillboardColumn } from './columns'
+import { ProductColumn } from './columns'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Copy, Edit, MoreHorizontal, TrashIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -10,7 +10,7 @@ import { useParams, useRouter } from 'next/navigation'
 import axios from 'axios'
 
 interface CellActionProps {
-  data: BillboardColumn
+  data: ProductColumn
 }
 
 export const CellAction: React.FC<CellActionProps> = ({ data }) => {
@@ -23,12 +23,12 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
     toast("Copied")
   }
 
-  const handleDeleteBillboard = () => {
+  const handleDeleteProduct = () => {
     setLoading(true);
-    axios.delete(`/api/${params.storeId}/billboards/${data.id}`)
+    axios.delete(`/api/${params.storeId}/products/${data.id}`)
     .then(() => {
       router.refresh()
-      toast("Billboard deleted")
+      toast("Product deleted")
     })
     .catch((error) => {
       toast.error("error occured", error)
@@ -51,7 +51,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
           Actions
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => router.push(`/admin/${params.storeId}/billboards/${data.id}`)}>
+        <DropdownMenuItem onClick={() => router.push(`/admin/${params.storeId}/products/${data.id}`)}>
           <Edit className='mr-2 h-4 w-4'/>
           Update
         </DropdownMenuItem>
@@ -59,7 +59,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
           <Copy className='mr-2 h-4 w-4'/>
           Copy Id
         </DropdownMenuItem>
-        <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteBillboard()}>
+        <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteProduct()}>
           <TrashIcon className='mr-2 h-4 w-4'/>
           Delete
         </DropdownMenuItem>

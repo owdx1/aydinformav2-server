@@ -3,26 +3,29 @@
 import { Heading } from '@/components/heading'
 import ImageUpload from '@/components/image-upload'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { billboardFormSchema } from '@/schemas/billboardFormSchema'
 import { productSchema } from '@/schemas/productSchema'
-import { Billboard, Image, Product } from '@prisma/client'
+import { Category, Color, Product, Size } from '@prisma/client'
 import axios from 'axios'
-import { Form, Formik } from 'formik'
+import { FieldArray, Form, Formik } from 'formik'
 import { LoaderIcon, TrashIcon } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import React, { useState } from 'react'
 import { toast } from 'sonner'
 
 interface ProductFormProps {
-  initialData: Product & { 
-    images: Image[]
-  } | null;
+  initialData: Product | null
+  colors: Color[]
+  sizes: Size[]
+  categories: Category[]
 }
 
-export const ProductForm: React.FC<ProductFormProps> = ({ initialData }) => {
+export const ProductForm: React.FC<ProductFormProps> = ({ initialData, colors, sizes, categories }) => {
 
   const [open, setOpen] = useState(false);
   const [isLoading, setLoading] = useState(false);
@@ -50,13 +53,11 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData }) => {
     })
   }
 
-  const [images, setImages] = useState([initialData?.images]) 
-
-  const [imageUrl, setImageUrl] = useState("")
-
 
   const params = useParams();
   console.log(params)
+
+  const [images, setImages] = useState(initialData?.images || [])
 
   return (
     <>
@@ -87,12 +88,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData }) => {
           </Popover>
         }
       </div>
-      <Separator />
-      <ImageUpload value={imageUrl ? [imageUrl] : []}
-        onChange={(url) => setImages((prev) => [...prev, url])}
-        disabled={isLoading}
-        onRemove={() =>  setImageUrl("")}     
-      />    
+      <Separator />       
       <div className="grid lg:grid-cols-3 grid-cols-1 gap-4 lg:gap-8">
         <Formik
           initialValues={
@@ -108,7 +104,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData }) => {
               colorId: "",
               sizeId: "",
               isFeatured: false,
-              isArchived: false          
+              isArchived: false,      
             }
           }
           onSubmit={async (values) => {
@@ -116,8 +112,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData }) => {
               setLoading(true)
               if(initialData) {
                 const response = await axios.patch(`/api/${params.storeId}/products/${params.productId}`, {
-                  name: values.name,
-                  imageUrl
+                  ...values,
+                  images
                 })
                 if(response.status === 200) {                 
                   router.push(`/admin/${params.storeId}/products`)
@@ -125,8 +121,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData }) => {
                 }
               } else {
                 const response = await axios.post(`/api/${params.storeId}/products`, {
-                  name: values.name,
-                  imageUrl
+                  ...values,
+                  images
                 })
                 if(response.status === 200) {                 
                   router.push(`/admin/${params.storeId}/products`)
@@ -143,9 +139,18 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData }) => {
           }}
           validationSchema={productSchema}
         >
-          {({values, handleChange, handleSubmit, errors, touched, isSubmitting}) => (
+          {({values, handleChange, handleSubmit, errors, touched, isSubmitting, setValues}) => (
             <Form onSubmit={handleSubmit} 
-              className='flex flex-col w-full h-full justify-center gap-5'>
+              className='flex flex-col w-full h-full justify-center gap-5'
+            >           
+              <ImageUpload
+                value={images}
+                onChange={(url) => {setImages((prev) => [...prev, url])}}
+                onRemove={(url) => {
+                  const formattedImages = images.filter((imgUrl) => imgUrl !== url)
+                  setImages(formattedImages)
+                }}
+              />
               <div>
                 <label>Name</label>
                 <Input 
@@ -155,6 +160,119 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData }) => {
                   placeholder='Enter product name...'
                 />
                 {errors.name && !touched.name && <p className="text-red-500"> {errors.name}</p>}
+              </div>
+              <div>
+                <label>Price</label>
+                <Input 
+                  onChange={handleChange}
+                  name='price'
+                  value={values.price}
+                  placeholder='Enter a price..'
+                  type="number"
+                />
+                {errors.price && !touched.price && <p className="text-red-500"> {errors.price}</p>}
+              </div>
+              <div>
+                <label>Amount</label>
+                <Input 
+                  onChange={handleChange}
+                  name='amount'
+                  value={values.amount}
+                  placeholder='how many are there for this item?'
+                  type="number"
+                />
+                {errors.amount && !touched.amount && <p className="text-red-500"> {errors.amount}</p>}
+              </div>
+              <div>
+                <label>Category</label>
+                <Select 
+                  disabled={isLoading}
+                  onValueChange={(value) => handleChange({target: {name:"categoryId", value}})}
+                  name='categoryId'
+                  value={values.categoryId}
+                  defaultValue={values.categoryId}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a category..."/>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((item) => (
+                      <SelectItem key={item.id} value={item.id}>
+                        {item.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.categoryId && !touched.categoryId && <p className="text-red-500"> {errors.categoryId}</p>}
+              </div>
+              <div>
+                <label>Size</label>
+                <Select 
+                  disabled={isLoading}
+                  onValueChange={(value) => handleChange({target: {name:"sizeId", value}})}
+                  name='sizeId'
+                  value={values.sizeId}
+                  defaultValue={values.sizeId}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a size..."/>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sizes.map((item) => (
+                      <SelectItem key={item.id} value={item.id}>
+                        {item.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.sizeId && !touched.sizeId && <p className="text-red-500"> {errors.sizeId}</p>}
+              </div>
+              <div>
+                <label>Color</label>
+                <Select 
+                  disabled={isLoading}
+                  onValueChange={(value) => handleChange({target: {name:"colorId", value}})}
+                  name='colorId'
+                  value={values.colorId}
+                  defaultValue={values.colorId}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a color..."/>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {colors.map((item) => (
+                      <SelectItem key={item.id} value={item.id} className='flex items-center gap-2'>
+                        {item.name}
+                        <div  className='w-6 h-6 border rounded-md' style={{ backgroundColor: item.value }}/>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.colorId && !touched.colorId && <p className="text-red-500"> {errors.colorId}</p>}
+              </div>
+              <div className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                <Input 
+                  name='isArchived'
+                  checked={values.isArchived}
+                  onChange={handleChange}
+                  type="checkbox"              
+                />
+                <div>
+                  <label> This product not appear anywhere </label>
+                </div>
+                {errors.isArchived && !touched.isArchived && <p className="text-red-500"> {errors.isArchived}</p>}
+              </div>
+              <div className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                <Input 
+                  name='isFeatured'
+                  checked={values.isFeatured}
+                  onChange={handleChange}
+                  type="checkbox"              
+                />
+                <div>
+                  <label> This product will appear in homepage </label>
+                </div>
+                {errors.isFeatured && !touched.isFeatured && <p className="text-red-500"> {errors.isFeatured}</p>}
               </div>
 
               <Button type="submit" className='flex gap-4' disabled={isLoading}>

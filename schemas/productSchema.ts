@@ -7,7 +7,7 @@ export const productSchema = yup.object().shape({
   sizeId: yup.string().required().min(1),
   isFeatured: yup.boolean().required(),
   isArchived: yup.boolean().required(),
-  amount: yup.number().required().min(0),
-  price: yup.number().required().min(0)
+  amount: yup.number().required().min(0, "Can not be negative..."),
+  price: yup.number().required().min(0, "Can not be negative...")
 })
 
