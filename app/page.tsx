@@ -1,11 +1,14 @@
 
+import Link from 'next/link'
 import React from 'react'
 
 type Props = {}
 
 const LandingPage = (props: Props) => {
   return (
-    <div>bos</div>
+    <Link href="/admin">
+      Admin
+    </Link>
   )
 }
 
